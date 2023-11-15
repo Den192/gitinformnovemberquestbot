@@ -43,7 +43,7 @@ async def fio_status(message: types.Message,state:FSMContext):
 async def group_status(message:types.Message,state:FSMContext):
     data = await state.get_data()
     user_id_collection.insert_one({"UserId":data['UserId'], "username":data['Username'],"registrationDate":data['RegistrationDate'],"FIO":data['FIO'],"GroupNumber":message.text})
-
+    await message.answer("Регистрация пройдена. ")
 async def main():
     await dp.start_polling(bot)
 
