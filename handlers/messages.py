@@ -11,8 +11,3 @@ from aiogram import Router
 router=Router()
 
 mongo = MongoClient()
-
-@router.message(Command('hello'))
-async def smth(message: types.Message):
-    await message.answer("Something")
-
