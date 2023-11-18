@@ -12,3 +12,7 @@ router=Router()
 
 mongo = MongoClient()
 
+@router.message(Command('hello'))
+async def smth(message: types.Message):
+    message.answer("Something")
+
