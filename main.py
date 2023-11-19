@@ -7,6 +7,8 @@ from aiogram.filters.command import Command
 from pymongo import MongoClient
 from datetime import datetime
 from handlers import get_router
+from handlers.admins import admin_router
+from filters.adminfilter import HasAdminRights
 
 mongo = MongoClient()
 db = mongo.InformNovemberQuestBot
@@ -51,8 +53,10 @@ async def group_status_mistake(message:types.Message):
     await message.answer("Ошибка в номере группы, введите еще раз")
 
 async def main():
+    admin_router.message.filter(HasAdminRights())
     talk_router = get_router()
     dp.include_router(talk_router)
+    dp.include_router(admin_router)
     await dp.start_polling(bot)
 
 if __name__ == "__main__":
