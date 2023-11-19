@@ -20,7 +20,7 @@ class BlacklistMiddleware(BaseMiddleware):
         list_cursor = [result for result in cursor]
         editedcursor = [result["id"] for result in list_cursor]
         if userid in editedcursor:
-            await event.answer("Вы были забанены!!!", show_alert=True)
+            await event.answer("Вы были забанены!!! Ты лох!!!", show_alert=True)
             return
         else:
             return await handler(event,data)
