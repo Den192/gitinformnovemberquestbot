@@ -3,7 +3,7 @@ from typing import Callable, Dict, Any, Awaitable
 from aiogram import BaseMiddleware
 from aiogram.types import Message, CallbackQuery
 from pymongo import MongoClient
-mongo = MongoClient('10.8.0.1:27017',username='tgNovemberQuest',password='InformNovemberQuestBot')
+mongo = MongoClient('10.8.0.1:27017',username='tgNovemberQuest',password='ogoetochtobotinforma')
 db = mongo.InformNovemberQuestBot
 blacklist = db.blacklist
 
