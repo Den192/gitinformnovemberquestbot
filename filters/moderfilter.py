@@ -6,9 +6,9 @@ from pymongo import MongoClient
 
 mongo = MongoClient()
 db=mongo.InformNovemberQuestBot
-admin_collection = db.admins
+admin_collection = db.moderators
 
-class HasAdminRights(BaseFilter):
+class HasModerRights(BaseFilter):
     async def __call__(self, message: Message) -> Union[bool, Dict[str, Any]]:
         # Если entities вообще нет, вернётся None,
         # в этом случае считаем, что это пустой список

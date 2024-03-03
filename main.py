@@ -8,8 +8,10 @@ from pymongo import MongoClient
 from datetime import datetime
 from handlers import get_router
 from handlers.admins import admin_router
+from handlers.moders import moder_router
 from filters.adminfilter import HasAdminRights
-
+from filters.moderfilter import HasModerRights
+from handlers.messages import StartMessage
 mongo = MongoClient()
 db = mongo.InformNovemberQuestBot
 user_id_collection = db.users
@@ -34,6 +36,8 @@ async def cmd_start(message: types.Message,state:FSMContext):
     if result is None:
         await state.set_state(startstates.beginstart)
         await message.answer("Введи свое ФИО")
+    else:
+        await message.answer("Для продолжения нажмите на /add")
 
 @dp.message(F.text,startstates.beginstart)
 async def fio_status(message: types.Message,state:FSMContext):
@@ -47,6 +51,7 @@ async def group_status(message:types.Message,state:FSMContext):
     data = await state.get_data()
     user_id_collection.insert_one({"UserId":data['UserId'], "username":data['Username'],"registrationDate":data['RegistrationDate'],"FIO":data['FIO'],"GroupNumber":message.text})
     await message.answer("Регистрация пройдена.")
+    await message.answer("Для продолжения нажмите на /add")
 
 @dp.message(F.text.len()!=6,startstates.groupstate)
 async def group_status_mistake(message:types.Message):
@@ -54,9 +59,11 @@ async def group_status_mistake(message:types.Message):
 
 async def main():
     admin_router.message.filter(HasAdminRights())
+    moder_router.message.filter(HasModerRights())
     talk_router = get_router()
     dp.include_router(talk_router)
     dp.include_router(admin_router)
+    dp.include_router(moder_router)
     await dp.start_polling(bot)
 
 if __name__ == "__main__":
