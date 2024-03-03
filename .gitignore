@@ -2,3 +2,5 @@
 .venv
 .vscode
 handlers/__pycache__
+test.py
+filters/__pycache__

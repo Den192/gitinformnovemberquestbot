@@ -12,11 +12,10 @@ from handlers.moders import moder_router
 from filters.adminfilter import HasAdminRights
 from filters.moderfilter import HasModerRights
 from handlers.messages import StartMessage
-mongo = MongoClient()
+mongo = MongoClient('10.8.0.1:27017',username='tgNovemberQuest',password='InformNovemberQuestBot')
 db = mongo.InformNovemberQuestBot
 user_id_collection = db.users
 
-chatId=""
 
 logging.basicConfig(level=logging.INFO)
 

@@ -4,7 +4,7 @@ from aiogram.filters import BaseFilter
 from aiogram.types import Message
 from pymongo import MongoClient
 
-mongo = MongoClient()
+mongo = MongoClient('10.8.0.1:27017',username='tgNovemberQuest',password='InformNovemberQuestBot')
 db=mongo.InformNovemberQuestBot
 admin_collection = db.moderators
 
