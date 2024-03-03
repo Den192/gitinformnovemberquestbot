@@ -11,18 +11,21 @@ from handlers.admins import admin_router
 from handlers.moders import moder_router
 from filters.adminfilter import HasAdminRights
 from filters.moderfilter import HasModerRights
+from filters.blacklist import BlacklistMiddleware
 
 mongo = MongoClient('10.8.0.1:27017',username='tgNovemberQuest',password='ogoetochtobotinforma')
 db = mongo.InformNovemberQuestBot
 user_id_collection = db.users
 
 
-logging.basicConfig(filename="/home/gitinformnovemberquestbot/info.log", encoding='utf-8', level=logging.INFO)
+logging.basicConfig(level=logging.INFO)
+#filename="/home/gitinformnovemberquestbot/info.log", encoding='utf-8', 
 
 bot = Bot(token="6825694742:AAFVKqf3DzvqN8_NDLeX5p-Igxam_xH-pyw")
 
 dp=Dispatcher()
 dp.message.filter(F.chat.type == "private")
+dp.message.outer_middleware(BlacklistMiddleware())
 
 class startstates(StatesGroup):
     beginstart = State()
@@ -34,7 +37,7 @@ async def cmd_start(message: types.Message,state:FSMContext):
     result = user_id_collection.find_one({"UserId":message.from_user.id})
     if result is None:
         await state.set_state(startstates.beginstart)
-        await message.answer("Введи свое ФИО")
+        await message.answer("Введите свое ФИО")
     else:
         await message.answer("Для продолжения нажмите на /add")
 

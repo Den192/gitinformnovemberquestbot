@@ -86,16 +86,15 @@ async def UserIdBan(message: types.Message,state:FSMContext):
     if len(useridindb)==0:
         await message.answer("Такой пользователь не существует!!")
         return
-    iduser = useridindb[0]["userid"]
-    result = blacklist.find_one({"userid":iduser})
+    result = blacklist.find_one({"userid":useridindb[0]["UserId"]})
     if result is None:
-        blacklist.insert_one({"userid":iduser,"username":message.text})
+        blacklist.insert_one({"UserId":useridindb[0]["UserId"],"username":message.text})
         await message.answer(f"Пользователь {message.text} был забанен.",reply_markup=types.ReplyKeyboardRemove())
     else:
         await message.answer(f"Пользователь {message.text} уже забанен!!!",reply_markup=types.ReplyKeyboardRemove())
     await message.answer("Для дальнейшей работы, нажмите /admin или /start")
     await state.clear()
-    del result,useridindb,iduser
+    del result,useridindb
 @admin_router.message(F.text.lower()=="разбанить")
 async def Unban(message:types.Message,state:FSMContext):
     await state.set_state(unbanstate.startunban)
@@ -107,14 +106,13 @@ async def NextUnban(message:types.Message,state:FSMContext):
         await message.answer("Пользователя нет в списке!!")
         await state.clear()
         return
-    iduser = useridindb[0]["userid"]
-    result = blacklist.find_one({"userid":iduser})
+    result = blacklist.find_one({"UserId":useridindb[0]["UserId"]})
     if result is not None:
-        blacklist.delete_one({"userid":iduser})
+        blacklist.delete_one({"UserId":useridindb[0]["UserId"]})
     await message.answer(f"Пользователь {message.text} был разбанен.",reply_markup=types.ReplyKeyboardRemove())
     await message.answer("Для дальнейшей работы, нажмите /admin или /start")
     await state.clear()
-    del result,useridindb,iduser
+    del result,useridindb
 
 @admin_router.message(banstate.startban,F.text.lower()==("отменить"))
 @admin_router.message(banstate.endban,F.text.lower()==("отменить"))

@@ -16,9 +16,9 @@ class BlacklistMiddleware(BaseMiddleware):
         data: Dict[str, Any]
     ) -> Any:
         userid = event.from_user.id 
-        cursor = blacklist.find({},{"_id":0,'id': 1})
+        cursor = blacklist.find({},{"_id":0,'UserId': 1})
         list_cursor = [result for result in cursor]
-        editedcursor = [result["id"] for result in list_cursor]
+        editedcursor = [result["UserId"] for result in list_cursor]
         if userid in editedcursor:
             await event.answer("Вы были забанены!!!", show_alert=True)
             return
