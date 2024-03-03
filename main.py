@@ -17,7 +17,7 @@ db = mongo.InformNovemberQuestBot
 user_id_collection = db.users
 
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(filename="/home/gitinformnovemberquestbot/info.log", encoding='utf-8', level=logging.INFO)
 
 bot = Bot(token="6825694742:AAFVKqf3DzvqN8_NDLeX5p-Igxam_xH-pyw")
 
