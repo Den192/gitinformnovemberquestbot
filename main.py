@@ -50,6 +50,7 @@ async def group_status(message:types.Message,state:FSMContext):
     data = await state.get_data()
     user_id_collection.insert_one({"UserId":data['UserId'], "username":data['Username'],"registrationDate":data['RegistrationDate'],"FIO":data['FIO'],"GroupNumber":message.text})
     await message.answer("Регистрация пройдена.")
+    await state.clear()
     await message.answer("Для продолжения нажмите на /add")
 
 @dp.message(F.text.len()!=6,startstates.groupstate)
