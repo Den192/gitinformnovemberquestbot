@@ -19,13 +19,13 @@ async def YesNoKeyboard():
     kb.button(text="Нет")
     kb.adjust(2)
     kb.row(types.KeyboardButton(text="Отмена"))
-    return kb.as_markup()
+    return kb.as_markup(resize_keyboard = True)
 
 async def KeyboardModer():
     kb = ReplyKeyboardBuilder()
     kb.button(text="Модерировать ответы")
     kb.row(types.KeyboardButton(text="Отменить"))
-    return kb.as_markup()
+    return kb.as_markup(resize_keyboard = True)
 
 class Moderation(StatesGroup):
     startmoder = State()

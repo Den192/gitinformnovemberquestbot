@@ -14,6 +14,7 @@ db=mongo.InformNovemberQuestBot
 user_id_collection = db.users
 challenges = db.challenges
 blacklist = db.blacklist
+stopquest = db.StoppingQuest
 
 class addchallengestate(StatesGroup):
     startaddchallenge = State()
@@ -23,6 +24,10 @@ class banstate(StatesGroup):
     endban=State()
 class unbanstate(StatesGroup):
     startunban=State()
+class endqueststate(StatesGroup):
+    startendquest = State()
+class userliststate(StatesGroup):
+    startuserlist = State()
 
 
 async def KeyboardMain():
@@ -30,7 +35,7 @@ async def KeyboardMain():
     Keyboard.button(text="Добавить задание"),
     Keyboard.button(text="Забанить"),
     Keyboard.button(text="Разбанить"),
-    Keyboard.button(text="История"),
+    Keyboard.button(text="Пользователи"),
     Keyboard.adjust(4)
     Keyboard.row(types.KeyboardButton(text="Подвести итоги"))
     Keyboard.row(types.KeyboardButton(text="Отменить"))
@@ -49,6 +54,30 @@ async def keyboardBuilder(BanUnban):
     builder.adjust(3)
     builder.row(types.KeyboardButton(text="Отменить"))
     return builder.as_markup(resize_keyboard=True)
+
+async def YesNoKeyboard():
+    kb = ReplyKeyboardBuilder()
+    kb.button(text="Да")
+    kb.button(text="Нет")
+    kb.adjust(2)
+    return kb.as_markup(resize_keyboard = True)
+
+async def buttonnumber():
+    pages = user_id_collection.count_documents({}) // 5 
+    if user_id_collection.count_documents({}) % 5 != 0:
+        pages += 1
+    return pages
+
+async def userkeyboard():
+    builder = ReplyKeyboardBuilder()
+    button = await buttonnumber()
+    for i in range(1,button+1):
+        builder.button(text=f"{i}")
+    builder.adjust(5)
+    builder.row(types.KeyboardButton(text="Выход из просмотра"))
+    return builder.as_markup(resize_keyboard=True)
+
+
 
 @admin_router.message(Command("admin"))
 async def AdminAnswer(message: types.Message,state:FSMContext):
@@ -114,9 +143,43 @@ async def NextUnban(message:types.Message,state:FSMContext):
     await state.clear()
     del result,useridindb
 
+@admin_router.message(F.text.lower()=="пользователи")
+async def Messagehistory(message: types.Message, state:FSMContext):
+    await state.set_state(userliststate.startuserlist)
+    await message.answer("Список пользователей",reply_markup=await userkeyboard())
+    await message.answer("Выберите страницу из списка ниже")
+
+@admin_router.message(userliststate.startuserlist,F.text!="Выход из просмотра")
+async def MessageHistoryPages(message:types.Message):
+    await message.answer("Страница: "+message.text,reply_markup=await userkeyboard())
+    pagenumber = int(message.text)
+    messagetext = list(user_id_collection.find({},{"_id":0}).skip(5*(pagenumber-1)).limit(5))
+    if len(messagetext)<5:
+        rang=len(messagetext)
+    else: 
+        rang=5
+    for i in range(0,rang):
+        myresults = [messagetext[i]["UserId"],messagetext[i]["username"],messagetext[i]["registrationDate"],messagetext[i]["FIO"],messagetext[i]["GroupNumber"]]
+        await message.answer("UserID пользователя: "+str(myresults[0])+"\nНик пользователя: @"+myresults[1]+"\nДата регистрации(дата/время): "+myresults[2]+"\nФИО пользователя: "+str(myresults[3])+"\nНомер группы: "+myresults[4])
+        del myresults
+    del messagetext,pagenumber
+
+
+@admin_router.message(F.text=="Подвести итоги")
+async def StopQuest(message:types.Message,state:FSMContext):
+    await message.answer("Вы выбрали кнопку подвести итоги, после выбора Да, квест будет остановлен и это действие отменить невозможно.\nВы точно уверены в этом действии?",reply_markup=await YesNoKeyboard())
+    await state.set_state(endqueststate.startendquest)
+@admin_router.message(endqueststate.startendquest,F.text=="Да")
+async def CreatingResults(message:types.Message,state:FSMContext):
+    stopquest.update_one({"docid":"1"},{"$set":{"queststopstatus":True}})
+    await message.answer("Квест был остановлен, работать с ботом могут лишь администраторы и модераторы\nВыберите действие", reply_markup=await KeyboardMain())
+    await state.clear()
+
 @admin_router.message(banstate.startban,F.text.lower()==("отменить"))
 @admin_router.message(banstate.endban,F.text.lower()==("отменить"))
 @admin_router.message(unbanstate.startunban,F.text.lower()==("отменить"))
+@admin_router.message(endqueststate.startendquest,F.text=="Нет")
+@admin_router.message(userliststate.startuserlist,F.text==("Выход из просмотра"))
 async def PhotoCancel(message: types.Message, state:FSMContext):
     await message.answer("Действие отменено, начните сначала",reply_markup=types.ReplyKeyboardRemove())
     await message.answer(text="Выберите действие",reply_markup=await KeyboardMain())

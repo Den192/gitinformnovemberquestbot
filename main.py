@@ -12,6 +12,7 @@ from handlers.moders import moder_router
 from filters.adminfilter import HasAdminRights
 from filters.moderfilter import HasModerRights
 from filters.blacklist import BlacklistMiddleware
+from filters.queststopfilter import StopQuestMiddleware
 
 mongo = MongoClient('10.8.0.1:27017',username='tgNovemberQuest',password='ogoetochtobotinforma')
 db = mongo.InformNovemberQuestBot
@@ -26,6 +27,7 @@ bot = Bot(token="6825694742:AAFVKqf3DzvqN8_NDLeX5p-Igxam_xH-pyw")
 dp=Dispatcher()
 dp.message.filter(F.chat.type == "private")
 dp.message.outer_middleware(BlacklistMiddleware())
+dp.message.outer_middleware(StopQuestMiddleware())
 
 class startstates(StatesGroup):
     beginstart = State()
