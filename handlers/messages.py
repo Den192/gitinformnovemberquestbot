@@ -8,6 +8,7 @@ from aiogram.utils.keyboard import ReplyKeyboardBuilder
 from aiogram.types import InputMediaPhoto
 from pymongo import MongoClient
 from aiogram import Router
+from datetime import datetime
 
 router=Router()
 
@@ -65,6 +66,7 @@ async def MessageCancel(message:types.Message,state:FSMContext):
 @router.message(ChallengeState.challengeaddanswer)
 async def AddingAnswer(message:types.Message,state:FSMContext):
     data = await state.get_data()
-    useranswer.insert_one({"userid":message.from_user.id,"username":message.from_user.username,"challengenumber":data["challengenumber"],"answer":message.text,"moderchecked":None})
+    today = datetime.now()
+    useranswer.insert_one({"userid":message.from_user.id,"username":message.from_user.username,"challengenumber":data["challengenumber"],"answer":message.text,"moderchecked":None,"answertime":today.strftime("%d:%m:%Y/%X")})
     await state.clear()
     await message.answer("Ваш ответ принят! Для добавления ответов, нажмите /add")
