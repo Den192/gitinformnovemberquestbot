@@ -176,27 +176,40 @@ async def StopQuest(message:types.Message,state:FSMContext):
     await state.set_state(endqueststate.startendquest)
 @admin_router.message(endqueststate.startendquest,F.text=="Да")
 async def CreatingResults(message:types.Message,state:FSMContext):
-    #stopquest.update_one({"docid":"1"},{"$set":{"queststopstatus":True}})
-    results=list()
+    stopquest.update_one({"docid":"1"},{"$set":{"queststopstatus":True}})
+    results = list()
     users = user_id_collection.find({})
     for user in users:
-        user_answers = useranswersdb.find({"userid":user["UserId"]})
-    all_answered = True
-    for challenge in challenges.find({}):
-        challenge_number = challenge["challengenumber"]
-        if not useranswersdb.find_one({"userid":user["UserId"],"challengenumber":challenge_number}):
-            all_answered = False
-            break
+        user_answers = useranswersdb.find({"userid": user["UserId"]})
+        answer_times = []
+        for answer in user_answers:
+            challenge_number = answer["challengenumber"]
+            answer_time = answer["answertime"]  # Access the "answertime" field
+            answer_times.append({"challengenumber": challenge_number, "answertime": answer_time})
+        all_answered = True
+        for challenge in challenges.find({}):
+            challenge_number = challenge["challengenumber"]
+            if not useranswersdb.find_one({"userid": user["UserId"], "challengenumber": challenge_number}):
+                all_answered = False
+                break
         if all_answered:
             all_moderated = True
             for answer in user_answers:
                 if not answer["moderchecked"]:
-                    all_moderated=False
+                    all_moderated = False
                     break
             if all_moderated:
-                results.append([user["UserId"],user["username"],user["registrationDate"],user["FIO"],user["GroupNumber"]])
-                
-    await message.answer("Победители конкурса")
+                results.append([user["UserId"], user["username"], user["registrationDate"], user["FIO"], user["GroupNumber"], answer_times])
+    chalnum = list()
+    anstime = list()
+    for i in range(0,len(results)):
+        for n in range(0,len(results[i][5])):
+            chalnum.append(results[i][5][n]["challengenumber"])
+            anstime.append(results[i][5][n]["answertime"])
+        await message.answer("Победитель\nUserID: "+str(results[i][0])+"\nНикнейм: @"+results[i][1]+"\nВремя регистрации: "+results[i][2]+"\nФИО: "+results[i][3]+"\nНомер группы: "+results[i][4]+"\n"+"Ответы на задания: \n"+"\n".join([" - ".join([str(item1),str(item2)]) for item1, item2 in zip(chalnum,anstime)]))
+        chalnum.clear()
+        anstime.clear()
+    del all_answered,all_moderated,anstime,answer,answer_time,answer_times,challenge,challenge_number,chalnum,results,user,user_answers,users,i,n
     await message.answer("Квест был остановлен, работать с ботом могут лишь администраторы и модераторы\nВыберите действие", reply_markup=await KeyboardMain())
     await state.clear()
 
