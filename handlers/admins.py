@@ -1,8 +1,6 @@
-from aiogram.types import Message
-from aiogram import Router, Bot , types, F
+from aiogram import Router, types, F
 from aiogram.filters.command import Command
 from aiogram.fsm.state import State, StatesGroup
-from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.fsm.context import FSMContext
 from aiogram.utils.keyboard import ReplyKeyboardBuilder
 from pymongo import MongoClient
@@ -92,12 +90,12 @@ async def addchallenge(message:types.Message,state:FSMContext):
     await message.answer("Введите номер задания, в данный момент существуют: "+listToStr,reply_markup=types.ReplyKeyboardRemove())
     await state.set_state(addchallengestate.startaddchallenge)
     del cursor,list_cursor,editedcursor,listToStr
-@admin_router.message(addchallengestate.startaddchallenge)
+@admin_router.message(addchallengestate.startaddchallenge,F.text!="/cancel")
 async def textchallenge(message:types.Message,state:FSMContext):
     await message.answer("Введите подсказку для пользователей")
     await state.set_state(addchallengestate.startaddhint)
     await state.update_data(challengenumber = message.text)
-@admin_router.message(addchallengestate.startaddhint)
+@admin_router.message(addchallengestate.startaddhint,F.text!="/cancel")
 async def hintchallenge(message:types.Message,state:FSMContext):
     data = await state.get_data()
     challenges.insert_one({"challengenumber":data["challengenumber"],"hint":message.text})
@@ -183,7 +181,7 @@ async def CreatingResults(message:types.Message,state:FSMContext):
         answer_times = []
         for answer in user_answers:
             challenge_number = answer["challengenumber"]
-            answer_time = answer["answertime"]  # Access the "answertime" field
+            answer_time = answer["answertime"]
             answer_times.append({"challengenumber": challenge_number, "answertime": answer_time})
         all_answered = True
         for challenge in challenges.find({}):
@@ -212,6 +210,8 @@ async def CreatingResults(message:types.Message,state:FSMContext):
     await message.answer("Квест был остановлен, работать с ботом могут лишь администраторы и модераторы\nВыберите действие", reply_markup=await KeyboardMain())
     await state.clear()
 
+@admin_router.message(addchallengestate.startaddhint,Command("cancel"))
+@admin_router.message(addchallengestate.startaddchallenge,Command("cancel"))
 @admin_router.message(banstate.startban,F.text.lower()==("отменить"))
 @admin_router.message(banstate.endban,F.text.lower()==("отменить"))
 @admin_router.message(unbanstate.startunban,F.text.lower()==("отменить"))

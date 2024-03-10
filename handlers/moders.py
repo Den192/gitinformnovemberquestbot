@@ -1,8 +1,6 @@
-from aiogram.types import Message
-from aiogram import Router, Bot , types, F
+from aiogram import Router, types, F
 from aiogram.filters.command import Command
 from aiogram.fsm.state import State, StatesGroup
-from aiogram.fsm.storage.memory import MemoryStorage
 from aiogram.fsm.context import FSMContext
 from aiogram.utils.keyboard import ReplyKeyboardBuilder
 from pymongo import MongoClient
