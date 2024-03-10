@@ -22,7 +22,7 @@ user_id_collection = db.users
 logging.basicConfig(filename="/home/gitinformnovemberquestbot/info.log", encoding='utf-8',level=logging.INFO)
  
 
-bot = Bot(token="6825694742:AAFVKqf3DzvqN8_NDLeX5p-Igxam_xH-pyw")
+bot = Bot(token="7073402197:AAGv3IVfkl228I3gDuW5dETDWsiNgj3forI")
 
 dp=Dispatcher()
 dp.message.filter(F.chat.type == "private")

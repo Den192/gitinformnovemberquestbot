@@ -8,7 +8,6 @@ from aiogram.utils.keyboard import ReplyKeyboardBuilder
 from pymongo import MongoClient
 
 admin_router = Router()
-#bot = Bot(token=)
 mongo = MongoClient('10.8.0.1:27017',username='tgNovemberQuest',password='ogoetochtobotinforma')
 db=mongo.InformNovemberQuestBot
 user_id_collection = db.users
