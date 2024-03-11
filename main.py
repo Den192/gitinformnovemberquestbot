@@ -46,6 +46,10 @@ async def cmd_start(message: types.Message,state:FSMContext):
 @dp.message(F.text,startstates.beginstart)
 async def fio_status(message: types.Message,state:FSMContext):
     today = datetime.now()
+    if message.from_user.username is None:
+        await message.answer("Для работы с ботом необходимо создать имя пользователя! Сделать это можно в настройках телеграмма")
+        await state.clear()
+        return
     await state.update_data(UserId=message.from_user.id,Username=message.from_user.username,RegistrationDate=today.strftime("%d:%m:%Y/%X"),FIO=message.text)
     await state.set_state(startstates.groupstate)
     await message.answer("Введите номер группы")

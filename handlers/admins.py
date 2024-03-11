@@ -1,4 +1,4 @@
-from aiogram import Router, types, F
+from aiogram import Router, types, F, Bot
 from aiogram.filters.command import Command
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.context import FSMContext
@@ -6,6 +6,7 @@ from aiogram.utils.keyboard import ReplyKeyboardBuilder
 from pymongo import MongoClient
 
 admin_router = Router()
+bot = Bot(token="7073402197:AAGv3IVfkl228I3gDuW5dETDWsiNgj3forI")
 mongo = MongoClient('10.8.0.1:27017',username='tgNovemberQuest',password='ogoetochtobotinforma')
 db=mongo.InformNovemberQuestBot
 user_id_collection = db.users
@@ -26,6 +27,8 @@ class endqueststate(StatesGroup):
     startendquest = State()
 class userliststate(StatesGroup):
     startuserlist = State()
+class messagetoall(StatesGroup):
+    startmessage = State()
 
 
 async def KeyboardMain():
@@ -35,6 +38,7 @@ async def KeyboardMain():
     Keyboard.button(text="Разбанить"),
     Keyboard.button(text="Пользователи"),
     Keyboard.adjust(4)
+    Keyboard.row(types.KeyboardButton(text="Сообщение всем пользователям"))
     Keyboard.row(types.KeyboardButton(text="Подвести итоги"))
     Keyboard.row(types.KeyboardButton(text="Отменить"))
     return Keyboard.as_markup(resize_keyboard=True)
@@ -209,6 +213,20 @@ async def CreatingResults(message:types.Message,state:FSMContext):
     del all_answered,all_moderated,anstime,answer,answer_time,answer_times,challenge,challenge_number,chalnum,results,user,user_answers,users,i,n
     await message.answer("Квест был остановлен, работать с ботом могут лишь администраторы и модераторы\nВыберите действие", reply_markup=await KeyboardMain())
     await state.clear()
+    
+@admin_router.message(F.text=="Сообщение всем пользователям")
+async def MessageToAll(message: types.Message,state:FSMContext):
+    await message.answer("Введенное сообщение будет отправлено всем пользователям\nВведите сообщение",reply_markup=types.ReplyKeyboardRemove())
+    await state.set_state(messagetoall.startmessage)
+@admin_router.message(messagetoall.startmessage,F.text!="/cancel" or F.text!="Отменить")
+async def sendmessagetoall(message: types.Message,state:FSMContext):
+    userlist = list(user_id_collection.find({},{"_id":0,"UserId":1}))
+    list_cursor = [result for result in userlist]
+    editedcursor = [result["UserId"] for result in list_cursor]
+    for i in range(0,len(editedcursor)):
+        await bot.send_message(chat_id=int(i),text=message.text)
+    await message.answer("Сообщение было отправлено! Для дальнейшей работы нажмите /start или /admin")
+    await state.clear()
 
 @admin_router.message(addchallengestate.startaddhint,Command("cancel"))
 @admin_router.message(addchallengestate.startaddchallenge,Command("cancel"))
@@ -216,6 +234,7 @@ async def CreatingResults(message:types.Message,state:FSMContext):
 @admin_router.message(banstate.endban,F.text.lower()==("отменить"))
 @admin_router.message(unbanstate.startunban,F.text.lower()==("отменить"))
 @admin_router.message(endqueststate.startendquest,F.text=="Нет")
+@admin_router.message(messagetoall.startmessage,F.text=="/cancel" or F.text=="Отменить")
 @admin_router.message(userliststate.startuserlist,F.text==("Выход из просмотра"))
 async def PhotoCancel(message: types.Message, state:FSMContext):
     await message.answer("Действие отменено, начните сначала",reply_markup=types.ReplyKeyboardRemove())
