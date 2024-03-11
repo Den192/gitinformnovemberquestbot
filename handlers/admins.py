@@ -224,7 +224,7 @@ async def sendmessagetoall(message: types.Message,state:FSMContext):
     list_cursor = [result for result in userlist]
     editedcursor = [result["UserId"] for result in list_cursor]
     for i in range(0,len(editedcursor)):
-        await bot.send_message(chat_id=int(i),text=message.text)
+        await bot.send_message(chat_id=editedcursor[i],text=message.text)
     await message.answer("Сообщение было отправлено! Для дальнейшей работы нажмите /start или /admin")
     await state.clear()
 
