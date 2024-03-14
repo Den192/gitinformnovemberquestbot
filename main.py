@@ -67,8 +67,8 @@ async def main():
     moder_router.message.filter(HasModerRights())
     talk_router = get_router()
     dp.include_router(talk_router)
-    dp.include_router(admin_router)
     dp.include_router(moder_router)
+    dp.include_router(admin_router)
     await dp.start_polling(bot)
 
 if __name__ == "__main__":
