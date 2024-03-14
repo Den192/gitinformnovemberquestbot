@@ -13,7 +13,7 @@ from filters.adminfilter import HasAdminRights
 from filters.moderfilter import HasModerRights
 from filters.blacklistandempryusernamefilter import BlacklistMiddleware
 from filters.queststopfilter import StopQuestMiddleware
-
+#fix
 mongo = MongoClient('10.8.0.1:27017',username='tgNovemberQuest',password='ogoetochtobotinforma')
 db = mongo.InformNovemberQuestBot
 user_id_collection = db.users
