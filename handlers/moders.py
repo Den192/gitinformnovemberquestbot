@@ -43,8 +43,7 @@ async def ModerationMessage(message:types.Message,state:FSMContext):
         await state.set_state(Moderation.startmoder)
         await message.answer("Задание номер "+useranswersmoder[0]["challengenumber"]+"\nОтвет: "+useranswersmoder[0]["answer"],reply_markup=await YesNoKeyboard())
         await state.update_data(userid = useranswersmoder[0]["userid"],challengenumber = useranswersmoder[0]["challengenumber"])
-@moder_router.message(Moderation.startmoder,F.text=="Да")
-@moder_router.message(Moderation.startmoder,F.text=="Нет")
+@moder_router.message(Moderation.startmoder,F.text=="Да" or F.text=="Нет")
 async def messagecheck(message:types.Message,state:FSMContext):
     if message.text=="Да":
         data = await state.get_data()
@@ -71,5 +70,5 @@ async def messagecheck(message:types.Message,state:FSMContext):
             await state.update_data(userid = useranswersmodernew[0]["userid"],challengenumber = useranswersmodernew[0]["challengenumber"])
 @moder_router.message(Moderation.startmoder,F.text=="/cancel" or F.text=="Отмена")
 async def cancelmessage(message:types.Message,state:FSMContext):
-    await message.answer("Проверка остановлена. Для продолжения выберите /add или /moder")
+    await message.answer("Проверка остановлена. Для продолжения выберите /add или /moder",reply_markup=types.ReplyKeyboardRemove())
     await state.clear()
