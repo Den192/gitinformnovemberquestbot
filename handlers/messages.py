@@ -58,7 +58,7 @@ async def GetMessage(message: types.Message, state:FSMContext):
             await state.set_state(ChallengeState.challengeaddanswer)
     del cursor,list_cursor,editedcursor
 
-@router.message(ChallengeState.challengeaddanswer,F.text!="/cancel")
+@router.message(ChallengeState.challengeaddanswer,F.text!="/cancel" or F.text!="Отменить")
 async def AddingAnswer(message:types.Message,state:FSMContext):
     data = await state.get_data()
     today = datetime.now()
