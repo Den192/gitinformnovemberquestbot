@@ -1,10 +1,10 @@
 from typing import Union, Dict, Any
-
+from os import environ
 from aiogram.filters import BaseFilter
 from aiogram.types import Message
 from pymongo import MongoClient
 
-mongo = MongoClient('10.8.0.1:27017',username='tgNovemberQuest',password='ogoetochtobotinforma')
+mongo = MongoClient(environ("MONGO_IP_PORT"),username=environ("MONGO_USERNAME"),password=environ("MONGO_PASSWORD"))
 db=mongo.InformNovemberQuestBot
 admin_collection = db.admins
 

@@ -1,5 +1,6 @@
 import logging
 import asyncio
+from os import environ
 from aiogram import Bot,Dispatcher,types,F
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
@@ -14,7 +15,7 @@ from filters.moderfilter import HasModerRights
 from filters.blacklistandempryusernamefilter import BlacklistMiddleware
 from filters.queststopfilter import StopQuestMiddleware
 #fix
-mongo = MongoClient('10.8.0.1:27017',username='tgNovemberQuest',password='ogoetochtobotinforma')
+mongo = MongoClient(environ("MONGO_IP_PORT"),username=environ("MONGO_USERNAME"),password=environ("MONGO_PASSWORD"))
 db = mongo.InformNovemberQuestBot
 user_id_collection = db.users
 
@@ -22,7 +23,7 @@ user_id_collection = db.users
 logging.basicConfig(filename="/home/gitinformnovemberquestbot/info.log", encoding='utf-8',level=logging.INFO)
  
 
-bot = Bot(token="7073402197:AAGv3IVfkl228I3gDuW5dETDWsiNgj3forI")
+bot = Bot(token=os.environ("TG_TOKEN"))
 
 dp=Dispatcher()
 dp.message.filter(F.chat.type == "private")

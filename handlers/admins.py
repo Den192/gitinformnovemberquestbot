@@ -1,3 +1,4 @@
+from os import environ
 from aiogram import Router, types, F, Bot
 from aiogram.filters.command import Command
 from aiogram.fsm.state import State, StatesGroup
@@ -6,8 +7,8 @@ from aiogram.utils.keyboard import ReplyKeyboardBuilder
 from pymongo import MongoClient
 
 admin_router = Router()
-bot = Bot(token="7073402197:AAGv3IVfkl228I3gDuW5dETDWsiNgj3forI")
-mongo = MongoClient('10.8.0.1:27017',username='tgNovemberQuest',password='ogoetochtobotinforma')
+bot = Bot(token=environ("TG_TOKEN"))
+mongo = MongoClient(environ("MONGO_IP_PORT"),username=environ("MONGO_USERNAME"),password=environ("MONGO_PASSWORD"))
 db=mongo.InformNovemberQuestBot
 user_id_collection = db.users
 challenges = db.challenges
