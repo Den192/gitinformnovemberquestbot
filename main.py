@@ -2,6 +2,7 @@ import logging
 import asyncio
 from os import getenv
 from dotenv import load_dotenv
+from pathlib import Path
 from sys import stdout
 from aiogram import Bot,Dispatcher,types,F
 from aiogram.fsm.context import FSMContext
@@ -16,7 +17,7 @@ from filters.adminfilter import HasAdminRights
 from filters.moderfilter import HasModerRights
 from filters.blacklistandempryusernamefilter import BlacklistMiddleware
 from filters.queststopfilter import StopQuestMiddleware
-load_dotenv()
+load_dotenv(dotenv_path=Path("/home/gitinformnovemberquestbot/.env"))
 mongo = MongoClient(getenv("MONGO_IP_PORT"),username=getenv("MONGO_USERNAME"),password=getenv("MONGO_PASSWORD"))
 db = mongo.InformNovemberQuestBot
 user_id_collection = db.users
