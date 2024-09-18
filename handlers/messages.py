@@ -1,4 +1,5 @@
-from os import environ
+from os import getenv
+from dotenv import load_dotenv
 from typing import Any
 from aiogram import types, F
 from aiogram.fsm.context import FSMContext
@@ -11,7 +12,9 @@ from datetime import datetime
 
 router=Router()
 
-mongo = MongoClient(environ["MONGO_IP_PORT"],username=environ["MONGO_USERNAME"],password=environ["MONGO_PASSWORD"])
+
+
+mongo = MongoClient(getenv("MONGO_IP_PORT"),username=getenv("MONGO_USERNAME"),password=getenv("MONGO_PASSWORD"))
 db = mongo.InformNovemberQuestBot
 user_id_collection = db.users
 challenges = db.challenges

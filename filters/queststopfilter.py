@@ -1,9 +1,11 @@
 from typing import Callable, Dict, Any, Awaitable
-from os import environ
+from os import getenv
+from dotenv import load_dotenv
 from aiogram import BaseMiddleware
 from aiogram.types import Message
 from pymongo import MongoClient
-mongo = MongoClient(environ["MONGO_IP_PORT"],username=environ["MONGO_USERNAME"],password=environ["MONGO_PASSWORD"])
+
+mongo = MongoClient(getenv("MONGO_IP_PORT"),username=getenv("MONGO_USERNAME"),password=getenv("MONGO_PASSWORD"))
 db = mongo.InformNovemberQuestBot
 queststop = db.StoppingQuest
 moders = db.moderators

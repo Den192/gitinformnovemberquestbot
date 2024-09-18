@@ -1,4 +1,5 @@
-from os import environ
+from os import getenv
+from dotenv import load_dotenv
 from aiogram import Router, types, F
 from aiogram.filters.command import Command
 from aiogram.fsm.state import State, StatesGroup
@@ -6,8 +7,10 @@ from aiogram.fsm.context import FSMContext
 from aiogram.utils.keyboard import ReplyKeyboardBuilder
 from pymongo import MongoClient
 
+
+
 moder_router = Router()
-mongo = MongoClient(environ["MONGO_IP_PORT"],username=environ["MONGO_USERNAME"],password=environ["MONGO_PASSWORD"])
+mongo = MongoClient(getenv("MONGO_IP_PORT"),username=getenv("MONGO_USERNAME"),password=getenv("MONGO_PASSWORD"))
 db=mongo.InformNovemberQuestBot
 user_id_collection = db.users
 useranswers = db.useranswers

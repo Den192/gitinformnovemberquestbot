@@ -1,6 +1,7 @@
 import logging
 import asyncio
-from os import environ
+from os import getenv
+from dotenv import load_dotenv
 from sys import stdout
 from aiogram import Bot,Dispatcher,types,F
 from aiogram.fsm.context import FSMContext
@@ -15,7 +16,8 @@ from filters.adminfilter import HasAdminRights
 from filters.moderfilter import HasModerRights
 from filters.blacklistandempryusernamefilter import BlacklistMiddleware
 from filters.queststopfilter import StopQuestMiddleware
-mongo = MongoClient(environ["MONGO_IP_PORT"],username=environ["MONGO_USERNAME"],password=environ["MONGO_PASSWORD"])
+load_dotenv()
+mongo = MongoClient(getenv("MONGO_IP_PORT"),username=getenv("MONGO_USERNAME"),password=getenv("MONGO_PASSWORD"))
 db = mongo.InformNovemberQuestBot
 user_id_collection = db.users
 
@@ -26,7 +28,7 @@ consoleHandler = logging.StreamHandler(stdout) #set streamhandler to stdout
 consoleHandler.setFormatter(logFormatter)
 logger.addHandler(consoleHandler)
  
-bot = Bot(token=environ["TG_TOKEN"])
+bot = Bot(token=getenv("TG_TOKEN"))
 
 dp=Dispatcher()
 dp.message.filter(F.chat.type == "private")
