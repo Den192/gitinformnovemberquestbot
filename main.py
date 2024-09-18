@@ -1,6 +1,7 @@
 import logging
 import asyncio
 from os import environ
+from sys import stdout
 from aiogram import Bot,Dispatcher,types,F
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
@@ -14,16 +15,18 @@ from filters.adminfilter import HasAdminRights
 from filters.moderfilter import HasModerRights
 from filters.blacklistandempryusernamefilter import BlacklistMiddleware
 from filters.queststopfilter import StopQuestMiddleware
-#fix
-mongo = MongoClient(environ("MONGO_IP_PORT"),username=environ("MONGO_USERNAME"),password=environ("MONGO_PASSWORD"))
+mongo = MongoClient(environ["MONGO_IP_PORT"],username=environ["MONGO_USERNAME"],password=environ["MONGO_PASSWORD"])
 db = mongo.InformNovemberQuestBot
 user_id_collection = db.users
 
-
-logging.basicConfig(filename="/home/gitinformnovemberquestbot/info.log", encoding='utf-8',level=logging.INFO)
+logger = logging.getLogger('mylogger')
+logger.setLevel(logging.DEBUG)
+logFormatter = logging.Formatter("%(name)-12s %(asctime)s %(levelname)-8s %(filename)s:%(funcName)s %(message)s")
+consoleHandler = logging.StreamHandler(stdout) #set streamhandler to stdout
+consoleHandler.setFormatter(logFormatter)
+logger.addHandler(consoleHandler)
  
-
-bot = Bot(token=os.environ("TG_TOKEN"))
+bot = Bot(token=environ["TG_TOKEN"])
 
 dp=Dispatcher()
 dp.message.filter(F.chat.type == "private")

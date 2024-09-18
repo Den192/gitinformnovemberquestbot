@@ -11,7 +11,7 @@ from datetime import datetime
 
 router=Router()
 
-mongo = MongoClient(environ("MONGO_IP_PORT"),username=environ("MONGO_USERNAME"),password=environ("MONGO_PASSWORD"))
+mongo = MongoClient(environ["MONGO_IP_PORT"],username=environ["MONGO_USERNAME"],password=environ["MONGO_PASSWORD"])
 db = mongo.InformNovemberQuestBot
 user_id_collection = db.users
 challenges = db.challenges

@@ -7,7 +7,7 @@ from aiogram.utils.keyboard import ReplyKeyboardBuilder
 from pymongo import MongoClient
 
 moder_router = Router()
-mongo = MongoClient(environ("MONGO_IP_PORT"),username=environ("MONGO_USERNAME"),password=environ("MONGO_PASSWORD"))
+mongo = MongoClient(environ["MONGO_IP_PORT"],username=environ["MONGO_USERNAME"],password=environ["MONGO_PASSWORD"])
 db=mongo.InformNovemberQuestBot
 user_id_collection = db.users
 useranswers = db.useranswers

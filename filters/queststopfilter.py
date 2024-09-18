@@ -3,7 +3,7 @@ from os import environ
 from aiogram import BaseMiddleware
 from aiogram.types import Message
 from pymongo import MongoClient
-mongo = MongoClient(environ("MONGO_IP_PORT"),username=environ("MONGO_USERNAME"),password=environ("MONGO_PASSWORD"))
+mongo = MongoClient(environ["MONGO_IP_PORT"],username=environ["MONGO_USERNAME"],password=environ["MONGO_PASSWORD"])
 db = mongo.InformNovemberQuestBot
 queststop = db.StoppingQuest
 moders = db.moderators
