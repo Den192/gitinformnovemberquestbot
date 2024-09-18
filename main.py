@@ -28,7 +28,7 @@ consoleHandler = logging.StreamHandler(stdout) #set streamhandler to stdout
 consoleHandler.setFormatter(logFormatter)
 logger.addHandler(consoleHandler)
  
-bot = Bot(token=getenv("TG_TOKEN"))
+bot = Bot(token=str(getenv("TG_TOKEN")))
 
 dp=Dispatcher()
 dp.message.filter(F.chat.type == "private")
