@@ -9,6 +9,7 @@ from aiogram.utils.keyboard import ReplyKeyboardBuilder
 from pymongo import MongoClient
 from aiogram import Router
 from datetime import datetime
+from random import choice
 
 router=Router()
 
@@ -56,9 +57,15 @@ async def GetMessage(message: types.Message, state:FSMContext):
             await state.clear()
             return
         else:
-            challenesearch = challenges.find({"challengenumber":message.text},{"_id":0,"hint":1})
-            await message.answer("Выбрано задание "+message.text+"\nПодсказка от авторов:\n"+challenesearch[0]["hint"]+"\nВведите свой ответ"+"\n\nЕсли в задании несколько ответов, вводите их все за один раз!!!",reply_markup=types.ReplyKeyboardRemove())
-            await state.update_data(challengenumber = message.text)
+            challenesearch = challenges.find({"challengenumber":message.text},{"_id":0,"hint":1,"usevariantsystem":1})
+            if challenesearch[0]["usevariantsystem"] == False:
+                await message.answer("Выбрано задание "+message.text+"\nПодсказка от авторов:\n"+challenesearch[0]["hint"]+"\nВведите свой ответ"+"\n\nЕсли в задании несколько ответов, вводите их все за один раз!!!",reply_markup=types.ReplyKeyboardRemove())
+                await state.update_data(challengenumber = message.text,usevariants = False)
+            else: 
+                challenesearchvariants = challenges.find({"challengenumber":message.text},{"_id":0,"hint":1,"variants":1})
+                randvariant = choice(challenesearchvariants[0][["variants" == randvariant],["hint"]])
+                await message.answer("Выбрано задание "+message.text+"\nПодсказка от авторов:\n"+challenesearchvariants[0][["variants" == randvariant],["hint"]]+"\nВведите свой ответ"+"\n\nЕсли в задании несколько ответов, вводите их все за один раз!!!",reply_markup=types.ReplyKeyboardRemove())
+                await state.update_data(challengenumber = message.text,usevariants = True,variants = randvariant)
             await state.set_state(ChallengeState.challengeaddanswer)
     del cursor,list_cursor,editedcursor
 
@@ -66,7 +73,10 @@ async def GetMessage(message: types.Message, state:FSMContext):
 async def AddingAnswer(message:types.Message,state:FSMContext):
     data = await state.get_data()
     today = datetime.now()
-    useranswer.insert_one({"userid":message.from_user.id,"username":message.from_user.username,"challengenumber":data["challengenumber"],"answer":message.text,"moderchecked":None,"answertime":today.strftime("%d:%m:%Y/%X")})
+    if data["usevariants"] == True:
+        useranswer.insert_one({"userid":message.from_user.id,"username":message.from_user.username,"challengenumber":data["challengenumber"],"usevariantssystem":True,"variant":data["variants"],"answer":message.text,"moderchecked":None,"answertime":today.strftime("%d:%m:%Y/%X")})
+    elif data["usevariants"] == False:
+        useranswer.insert_one({"userid":message.from_user.id,"username":message.from_user.username,"challengenumber":data["challengenumber"],"answer":message.text,"moderchecked":None,"answertime":today.strftime("%d:%m:%Y/%X")})
     await state.clear()
     await message.answer("Ваш ответ принят! Для добавления ответов, нажмите /add")
 
