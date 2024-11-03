@@ -1,5 +1,6 @@
 from os import getenv
 from dotenv import load_dotenv
+load_dotenv('''dotenv_path=Path("/home/gitinformnovemberquestbot/.env")''')
 from aiogram import Router, types, F, Bot
 from aiogram.filters.command import Command
 from aiogram.fsm.state import State, StatesGroup
@@ -106,13 +107,17 @@ async def textchallenge(message:types.Message,state:FSMContext):
 @admin_router.message(addchallengestate.startaddhint,F.text!="/cancel")
 async def userandomsystem(message:types.Message,state:FSMContext):
     await state.update_data(hint = message.text)
-    await message.answer("Использовать систему вариантов?",reply_markup=YesNoKeyboard())
+    await message.answer("Использовать систему вариантов?",reply_markup=await YesNoKeyboard())
     await state.set_state(addchallengestate.userandom)
 @admin_router.message(addchallengestate.userandom,F.text!="/cancel", F.text == "Да")
 async def userandomtrue(message: types.Message, state:FSMContext):
-    data = state.get_data()
+    data = await state.get_data()
     cursor = challenges.find({"challengenumber":data["challengenumber"]},{"_id":0,'variants': 1})
     list_cursor = [result for result in cursor]
+    if list_cursor[0] == {}:
+        await message.answer("На данный момент не существует ни одного варианта заданий",reply_markup=types.ReplyKeyboardRemove()) 
+        await state.set_state(addchallengestate.userandomyes)
+        return 
     editedcursor = [result["variants"] for result in list_cursor]
     listToStr = ' '.join([str(elem) for elem in editedcursor])
     await message.answer("Введите номер варианта задания, на данный момент существуют: "+listToStr,reply_markup=types.ReplyKeyboardRemove())
@@ -121,7 +126,7 @@ async def userandomtrue(message: types.Message, state:FSMContext):
 async def randomsetted(message:types.Message,state:FSMContext):
     data = await state.get_data()
     challenges.insert_one({"challengenumber":data["challengenumber"],"hint":data["hint"],"usevariantsystem":True,"variants":message.text})
-    await message.answer("Задание под номером "+data["challengenumber"]+"и вариантом ответа "+message.text+" успешно добавлено!\nДля продолжения нажмите /admin или /start")
+    await message.answer("Задание под номером "+data["challengenumber"]+" и вариантом ответа "+message.text+" успешно добавлено!\nДля продолжения нажмите /admin или /start")
     await state.clear()
 @admin_router.message(addchallengestate.startaddhint,F.text!="/cancel", F.text == "Нет")
 async def hintchallenge(message:types.Message,state:FSMContext):

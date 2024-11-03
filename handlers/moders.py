@@ -1,12 +1,12 @@
 from os import getenv
 from dotenv import load_dotenv
+load_dotenv('''dotenv_path=Path("/home/gitinformnovemberquestbot/.env")''')
 from aiogram import Router, types, F
 from aiogram.filters.command import Command
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.context import FSMContext
 from aiogram.utils.keyboard import ReplyKeyboardBuilder
 from pymongo import MongoClient
-
 
 
 moder_router = Router()

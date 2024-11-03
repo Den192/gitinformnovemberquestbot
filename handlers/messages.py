@@ -1,5 +1,6 @@
 from os import getenv
 from dotenv import load_dotenv
+load_dotenv('''dotenv_path=Path("/home/gitinformnovemberquestbot/.env")''')
 from typing import Any
 from aiogram import types, F
 from aiogram.fsm.context import FSMContext

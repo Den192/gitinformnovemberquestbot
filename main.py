@@ -3,7 +3,7 @@ import asyncio
 from os import getenv
 from dotenv import load_dotenv
 from pathlib import Path
-load_dotenv(dotenv_path=Path("/home/gitinformnovemberquestbot/.env"))
+load_dotenv('''dotenv_path=Path("/home/gitinformnovemberquestbot/.env")''')
 from aiogram import Bot,Dispatcher,types,F
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
