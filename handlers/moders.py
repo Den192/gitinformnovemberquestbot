@@ -1,5 +1,8 @@
 from os import getenv
+from os import getenv
 from dotenv import load_dotenv
+from pathlib import Path
+load_dotenv(dotenv_path=Path("/home/gitinformnovemberquestbot/.env"))
 from aiogram import Router, types, F
 from aiogram.filters.command import Command
 from aiogram.fsm.state import State, StatesGroup

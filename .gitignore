@@ -1,5 +1,5 @@
 .vscode/settings.json
-.venv
+.venv/*
 .vscode
 handlers/__pycache__
 test.py
@@ -8,3 +8,5 @@ filters/__pycache__
 .env
 docker-compose.yml
 Dockerfile
+info.log
+

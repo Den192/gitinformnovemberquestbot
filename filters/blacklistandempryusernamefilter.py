@@ -1,6 +1,8 @@
 from typing import Callable, Dict, Any, Awaitable
 from os import getenv
 from dotenv import load_dotenv
+from pathlib import Path
+load_dotenv(dotenv_path=Path("/home/gitinformnovemberquestbot/.env"))
 from aiogram import BaseMiddleware
 from aiogram.types import Message
 from pymongo import MongoClient
