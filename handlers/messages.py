@@ -1,7 +1,10 @@
-from os import getenv
+from os import getenv, name
 from dotenv import load_dotenv
 from pathlib import Path
-load_dotenv(dotenv_path=Path("/home/gitinformnovemberquestbot/.env"))
+if name == 'nt':
+    load_dotenv(dotenv_path=Path(r'F:\Programming\gitInformNovemberQuestBot\.env'))
+else:
+    load_dotenv(dotenv_path=Path("/home/gitinformnovemberquestbot/.env"))
 from typing import Any
 from aiogram import types, F
 from aiogram.fsm.context import FSMContext
@@ -25,6 +28,16 @@ useranswer = db.useranswers
 class ChallengeState(StatesGroup):
     challengestart = State()
     challengeaddanswer = State()
+class DeleteAnswerState(StatesGroup):
+    deleteanswerstart = State()
+    deleteanswerconfirmation = State()
+
+async def YesNoKeyboard():
+    kb = ReplyKeyboardBuilder()
+    kb.button(text="Да")
+    kb.button(text="Нет")
+    kb.adjust(2)
+    return kb.as_markup(resize_keyboard = True)
 
 async def challengeskeyboard():
     Keyboard = ReplyKeyboardBuilder()
@@ -34,13 +47,38 @@ async def challengeskeyboard():
     for i in range(0,len(editedcursor)):
         Keyboard.button(text=f"{editedcursor[i]}")
     Keyboard.adjust(3)
+    Keyboard.row(types.KeyboardButton(text="Удалить ответ"))
     Keyboard.row(types.KeyboardButton(text="Отменить"))
     return Keyboard.as_markup(resize_keyboard=True)
+
+async def deletechallengeskeyboard(userid):
+    Keyboard = ReplyKeyboardBuilder()
+    cursor = useranswer.find({"userid":userid},{"_id":0,"challengenumber":1})
+    list_cursor = [result for result in cursor]
+    editedcursor = [result["challengenumber"] for result in list_cursor]
+    for i in range(0,len(editedcursor)):
+        Keyboard.button(text=f"{editedcursor[i]}")
+    Keyboard.adjust(3)
+    Keyboard.row(types.KeyboardButton(text="Отменить"))
+    return Keyboard.as_markup(resize_keyboard=True)
+
 @router.message(Command("add"))
 async def StartMessage(message: types.Message, state:FSMContext):
-    await message.answer("Привет! Этот бот создан для участия в мартовском квесте ФИТУ!.\nДля продолжения выберите задание, на которое хотите добавить ответ",reply_markup=await challengeskeyboard())
+    await message.answer("Привет! Этот бот создан для участия в квесте ФИТУ!.\nДля продолжения выберите задание, на которое хотите добавить ответ",reply_markup=await challengeskeyboard())
     await state.set_state(ChallengeState.challengestart)
 
+@router.message(ChallengeState.challengestart,F.text=="Удалить ответ")
+async def DeleteAnswer(message:types.Message,state:FSMContext):
+    cursor = list(useranswer.find({"userid":message.from_user.id},{"_id":0,"challengenumber":1}))
+    if len(cursor) == 0:
+        await message.answer("Еще ни на одно задание не был введен ответ. Для продолжения нажмите /add",reply_markup=types.ReplyKeyboardRemove())
+        await state.clear()
+        del cursor
+        return
+    await message.answer("Выберите задание, на которое хотите удалить ответ",reply_markup=await deletechallengeskeyboard(message.from_user.id))
+    await state.set_state(DeleteAnswerState.deleteanswerstart)
+
+@router.message(ChallengeState.challengestart,F.text!='Удалить ответ')
 @router.message(ChallengeState.challengestart,F.text!="Отменить")
 async def GetMessage(message: types.Message, state:FSMContext):
     cursor = challenges.find({},{"_id":0,'challengenumber':1})
@@ -64,7 +102,8 @@ async def GetMessage(message: types.Message, state:FSMContext):
             await state.set_state(ChallengeState.challengeaddanswer)
     del cursor,list_cursor,editedcursor
 
-@router.message(ChallengeState.challengeaddanswer,F.text!="/cancel" or F.text!="Отменить")
+@router.message(ChallengeState.challengeaddanswer,F.text!="Отменить")
+@router.message(ChallengeState.challengeaddanswer,F.text!="/cancel")
 async def AddingAnswer(message:types.Message,state:FSMContext):
     data = await state.get_data()
     today = datetime.now()
@@ -72,6 +111,32 @@ async def AddingAnswer(message:types.Message,state:FSMContext):
     await state.clear()
     await message.answer("Ваш ответ принят! Для добавления ответов, нажмите /add")
 
+@router.message(ChallengeState.challengestart,F.text=="Удалить ответ")
+async def DeleteAnswer(message:types.Message,state:FSMContext):
+    cursor = useranswer.find({"userid":types.Message.from_user.id},{"_id":0,"challengenumber":1})
+    if cursor[0] == {}:
+        await message.answer("Еще ни на одно задание не был введен ответ. Для продолжения нажмите /add")
+        await state.clear()
+        del cursor
+        return
+    await message.answer("Выберите задание, на которое хотите удалить ответ",reply_markup=await deletechallengeskeyboard())
+    await state.set_state(DeleteAnswerState.deleteanswerstart)
+
+@router.message(DeleteAnswerState.deleteanswerstart,F.text!="Отменить")
+async def DeleteAnswerConfirm(message:types.Message,state:FSMContext):
+    await message.answer("Вы выбрали задание под номером "+message.text+"\n\nВы точно хотите удалить?",reply_markup=await YesNoKeyboard())
+    await state.update_data(TaskNumber = message.text)
+    await state.set_state(DeleteAnswerState.deleteanswerconfirmation)
+
+@router.message(DeleteAnswerState.deleteanswerconfirmation,F.text=="Да")
+async def DeleteAnswerTrue(message:types.Message,state:FSMContext):
+    data = await state.get_data()
+    useranswer.delete_one({"userid":message.from_user.id,"challengenumber":data["TaskNumber"]})
+    await message.answer("Ответ был удален\nДля продолжения нажмите /add",reply_markup=types.ReplyKeyboardRemove())
+    await state.clear()
+
+@router.message(DeleteAnswerState.deleteanswerstart,F.text=="Отменить")
+@router.message(DeleteAnswerState.deleteanswerconfirmation,F.text=="Нет")
 @router.message(ChallengeState.challengeaddanswer,F.text=="/cancel")
 @router.message(ChallengeState.challengestart,F.text=="Отменить" or F.text=="/cancel")
 async def MessageCancel(message:types.Message,state:FSMContext):

@@ -1,5 +1,6 @@
 .vscode/settings.json
 .venv/*
+.venv
 .vscode
 handlers/__pycache__
 test.py

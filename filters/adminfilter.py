@@ -1,8 +1,11 @@
 from typing import Union, Dict, Any
-from os import getenv
+from os import getenv, name
 from dotenv import load_dotenv
 from pathlib import Path
-load_dotenv(dotenv_path=Path("/home/gitinformnovemberquestbot/.env"))
+if name == 'nt':
+    load_dotenv(dotenv_path=Path(r'F:\Programming\gitInformNovemberQuestBot\.env'))
+else:
+    load_dotenv(dotenv_path=Path("/home/gitinformnovemberquestbot/.env"))
 from aiogram.filters import BaseFilter
 from aiogram.types import Message
 from pymongo import MongoClient
