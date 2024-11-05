@@ -96,9 +96,9 @@ async def GetMessage(message: types.Message, state:FSMContext):
             await state.clear()
             return
         else:
-            challenesearch = challenges.find({"challengenumber":message.text},{"_id":0,"hint":1})
+            challenesearch = challenges.find({"challengenumber":message.text},{"_id":0,"hint":1,"answer":1})
             await message.answer("Выбрано задание "+message.text+"\nПодсказка от авторов:\n"+challenesearch[0]["hint"]+"\nВведите свой ответ"+"\n\nЕсли в задании несколько ответов, вводите их все за один раз!!!",reply_markup=types.ReplyKeyboardRemove())
-            await state.update_data(challengenumber = message.text)
+            await state.update_data(challengenumber = message.text,answer = challenesearch[0]["answer"])
             await state.set_state(ChallengeState.challengeaddanswer)
     del cursor,list_cursor,editedcursor
 
@@ -107,7 +107,11 @@ async def GetMessage(message: types.Message, state:FSMContext):
 async def AddingAnswer(message:types.Message,state:FSMContext):
     data = await state.get_data()
     today = datetime.now()
-    useranswer.insert_one({"userid":message.from_user.id,"username":message.from_user.username,"challengenumber":data["challengenumber"],"answer":message.text,"moderchecked":None,"answertime":today.strftime("%d:%m:%Y/%X")})
+    data = await state.get_data()
+    if data["answer"] == message.text:
+        useranswer.insert_one({"userid":message.from_user.id,"username":message.from_user.username,"challengenumber":data["challengenumber"],"answer":message.text,"moderchecked":True,"answertime":today.strftime("%d:%m:%Y/%X")})
+    else:
+        useranswer.insert_one({"userid":message.from_user.id,"username":message.from_user.username,"challengenumber":data["challengenumber"],"answer":message.text,"moderchecked":None,"answertime":today.strftime("%d:%m:%Y/%X")})
     await state.clear()
     await message.answer("Ваш ответ принят! Для добавления ответов, нажмите /add")
 

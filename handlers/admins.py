@@ -25,6 +25,7 @@ useranswersdb = db.useranswers
 class addchallengestate(StatesGroup):
     startaddchallenge = State()
     startaddhint = State()
+    startaddanswer = State()
 class banstate(StatesGroup):
     startban=State()
     endban=State()
@@ -107,9 +108,14 @@ async def textchallenge(message:types.Message,state:FSMContext):
     await state.set_state(addchallengestate.startaddhint)
     await state.update_data(challengenumber = message.text)
 @admin_router.message(addchallengestate.startaddhint,F.text!="/cancel")
+async def answerchallenge(message:types.Message,state:FSMContext):
+    await state.update_data(hint = message.text)
+    await message.answer("Введите ответ на задание")
+    await state.set_state(addchallengestate.startaddanswer)
+@admin_router.message(addchallengestate.startaddanswer,F.text!="/cancel")
 async def hintchallenge(message:types.Message,state:FSMContext):
     data = await state.get_data()
-    challenges.insert_one({"challengenumber":data["challengenumber"],"hint":message.text})
+    challenges.insert_one({"challengenumber":data["challengenumber"],"hint":data["hint"],"answer":message.text})
     await message.answer("Задание под номером "+data["challengenumber"]+" успешно добавлено!\nДля продолжения нажмите /admin или /start")
     await state.clear()
 
