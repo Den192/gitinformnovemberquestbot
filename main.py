@@ -26,6 +26,7 @@ logging.basicConfig(level=logging.INFO)
 mongo = MongoClient(getenv("MONGO_IP_PORT"),username=getenv("MONGO_USERNAME"),password=getenv("MONGO_PASSWORD"))
 db = mongo.InformNovemberQuestBot
 user_id_collection = db.users
+challenges = db.challenges
 
 
  
@@ -60,7 +61,9 @@ async def fio_status(message: types.Message,state:FSMContext):
 @dp.message(F.text.len()==6,startstates.groupstate)
 async def group_status(message:types.Message,state:FSMContext):
     data = await state.get_data()
-    user_id_collection.insert_one({"UserId":data['UserId'], "username":data['Username'],"registrationDate":data['RegistrationDate'],"FIO":data['FIO'],"GroupNumber":message.text})
+    challengesList = list(challenges.find({},{"_id":0,"challengenumber":1}))
+    challengesArray = [[item["challengenumber"], False] for item in challengesList]
+    user_id_collection.insert_one({"UserId":data['UserId'], "username":data['Username'],"registrationDate":data['RegistrationDate'],"FIO":data['FIO'],"GroupNumber":message.text,"challenges":challengesArray})
     await message.answer("Регистрация пройдена.")
     await state.clear()
     await message.answer("Для продолжения нажмите на /add")
