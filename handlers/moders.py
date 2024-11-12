@@ -56,6 +56,8 @@ async def ModerationMessage(message:types.Message,state:FSMContext):
 async def messagecheck(message:types.Message,state:FSMContext):
     if message.text=="Да":
         data = await state.get_data()
+        index = next(i for i, challenge in enumerate(list(user_id_collection.find({"UserId":data["userid"]}, {"_id": 0, "challenges": 1}))[0]["challenges"]) if challenge[0] == data["challengenumber"])
+        user_id_collection.update_one({"UserId":data["userid"]},{"$set":{"challenges."+str(index)+".1":True}})
         useranswers.update_one({"userid":data["userid"],"challengenumber":data["challengenumber"]},{"$set":{"moderchecked":True}})
         useranswersmodernew = list(useranswers.find({"moderchecked":None},{"_id":0,"userid":1,"challengenumber":1,"answer":1}))
         if len(useranswersmodernew)==0:

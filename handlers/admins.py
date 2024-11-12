@@ -5,6 +5,7 @@ if name == 'nt':
     load_dotenv(dotenv_path=Path(r'F:\Programming\gitInformNovemberQuestBot\.env'))
 else:
     load_dotenv(dotenv_path=Path("/home/gitinformnovemberquestbot/.env"))
+from bson import ObjectId
 from aiogram import Router, types, F, Bot
 from aiogram.filters.command import Command
 from aiogram.fsm.state import State, StatesGroup
@@ -115,6 +116,7 @@ async def answerchallenge(message:types.Message,state:FSMContext):
 @admin_router.message(addchallengestate.startaddanswer,F.text!="/cancel")
 async def hintchallenge(message:types.Message,state:FSMContext):
     data = await state.get_data()
+    user_id_collection.update_many({},{"$push": {"challenges": [data["challengenumber"], False]}})
     challenges.insert_one({"challengenumber":data["challengenumber"],"hint":data["hint"],"answer":message.text})
     await message.answer("Задание под номером "+data["challengenumber"]+" успешно добавлено!\nДля продолжения нажмите /admin или /start")
     await state.clear()
@@ -190,7 +192,7 @@ async def StopQuest(message:types.Message,state:FSMContext):
     await state.set_state(endqueststate.startendquest)
 @admin_router.message(endqueststate.startendquest,F.text=="Да")
 async def CreatingResults(message:types.Message,state:FSMContext):
-    stopquest.update_one({"docid":"1"},{"$set":{"queststopstatus":True}})
+    stopquest.update_one({"_id":ObjectId("66eb677990934756c5320fc8")},{"$set":{"queststopstatus":True}})
     results = list()
     users = user_id_collection.find({})
     for user in users:

@@ -39,12 +39,24 @@ async def YesNoKeyboard():
     kb.adjust(2)
     return kb.as_markup(resize_keyboard = True)
 
-async def challengeskeyboard():
+async def challengeskeyboard(userid):
     Keyboard = ReplyKeyboardBuilder()
+    userquest = list(user_id_collection.find({"UserId":userid},{"_id":0,"challenges":1}))
+    if userquest and "challenges" in userquest[0]:
+        for challenge in userquest[0]["challenges"]:
+            if challenge[1] == False:
+               first_false_challenge = int(challenge[0])
+               break
+        else:
+            first_false_challenge = None
+    else:
+        first_false_challenge = None 
     cursor = challenges.find({},{"_id":0,"challengenumber":1})
     list_cursor = [result for result in cursor]
     editedcursor = [result["challengenumber"] for result in list_cursor]
-    for i in range(0,len(editedcursor)):
+    if first_false_challenge == None:
+        first_false_challenge = len(editedcursor)
+    for i in range(0,first_false_challenge):
         Keyboard.button(text=f"{editedcursor[i]}")
     Keyboard.adjust(3)
     Keyboard.row(types.KeyboardButton(text="Удалить ответ"))
@@ -64,7 +76,7 @@ async def deletechallengeskeyboard(userid):
 
 @router.message(Command("add"))
 async def StartMessage(message: types.Message, state:FSMContext):
-    await message.answer("Привет! Этот бот создан для участия в квесте ФИТУ!.\nДля продолжения выберите задание, на которое хотите добавить ответ",reply_markup=await challengeskeyboard())
+    await message.answer("Привет! Этот бот создан для участия в квесте ФИТУ!.\nДля продолжения выберите задание, на которое хотите добавить ответ",reply_markup=await challengeskeyboard(message.from_user.id))
     await state.set_state(ChallengeState.challengestart)
 
 @router.message(ChallengeState.challengestart,F.text=="Удалить ответ")
@@ -78,8 +90,8 @@ async def DeleteAnswer(message:types.Message,state:FSMContext):
     await message.answer("Выберите задание, на которое хотите удалить ответ",reply_markup=await deletechallengeskeyboard(message.from_user.id))
     await state.set_state(DeleteAnswerState.deleteanswerstart)
 
-@router.message(ChallengeState.challengestart,F.text!='Удалить ответ')
-@router.message(ChallengeState.challengestart,F.text!="Отменить")
+@router.message(F.text!='Удалить ответ',ChallengeState.challengestart)
+@router.message(F.text!="Отменить",ChallengeState.challengestart)
 async def GetMessage(message: types.Message, state:FSMContext):
     cursor = challenges.find({},{"_id":0,'challengenumber':1})
     list_cursor = [result for result in cursor]
@@ -109,6 +121,8 @@ async def AddingAnswer(message:types.Message,state:FSMContext):
     today = datetime.now()
     data = await state.get_data()
     if data["answer"] == message.text:
+        index = next(i for i, challenge in enumerate(list(user_id_collection.find({"UserId":message.from_user.id}, {"_id": 0, "challenges": 1}))[0]["challenges"]) if challenge[0] == data["challengenumber"])
+        user_id_collection.update_one({"UserId":message.from_user.id},{"$set":{f"challenges.{index}.1":True}})
         useranswer.insert_one({"userid":message.from_user.id,"username":message.from_user.username,"challengenumber":data["challengenumber"],"answer":message.text,"moderchecked":True,"answertime":today.strftime("%d:%m:%Y/%X")})
     else:
         useranswer.insert_one({"userid":message.from_user.id,"username":message.from_user.username,"challengenumber":data["challengenumber"],"answer":message.text,"moderchecked":None,"answertime":today.strftime("%d:%m:%Y/%X")})
