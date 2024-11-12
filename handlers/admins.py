@@ -36,6 +36,8 @@ class endqueststate(StatesGroup):
     startendquest = State()
 class userliststate(StatesGroup):
     startuserlist = State()
+class answerliststate(StatesGroup):
+    startanswerlist = State() 
 class messagetoall(StatesGroup):
     startmessage = State()
 
@@ -47,6 +49,7 @@ async def KeyboardMain():
     Keyboard.button(text="Разбанить"),
     Keyboard.button(text="Пользователи"),
     Keyboard.adjust(4)
+    Keyboard.row(types.KeyboardButton(text="Ответы пользователей"))
     Keyboard.row(types.KeyboardButton(text="Сообщение всем пользователям"))
     Keyboard.row(types.KeyboardButton(text="Подвести итоги"))
     Keyboard.row(types.KeyboardButton(text="Отменить"))
@@ -79,6 +82,12 @@ async def buttonnumber():
         pages += 1
     return pages
 
+async def answernumber():
+    pages = useranswersdb.count_documents({}) // 5 
+    if useranswersdb.count_documents({}) % 5 != 0:
+        pages += 1
+    return pages
+
 async def userkeyboard():
     builder = ReplyKeyboardBuilder()
     button = await buttonnumber()
@@ -88,7 +97,14 @@ async def userkeyboard():
     builder.row(types.KeyboardButton(text="Выход из просмотра"))
     return builder.as_markup(resize_keyboard=True)
 
-
+async def answerkeyboard():
+    builder = ReplyKeyboardBuilder()
+    button = await answernumber()
+    for i in range(1,button+1):
+        builder.button(text=f"{i}")
+    builder.adjust(5)
+    builder.row(types.KeyboardButton(text="Выход из просмотра"))
+    return builder.as_markup(resize_keyboard=True)
 
 @admin_router.message(Command("admin"))
 async def AdminAnswer(message: types.Message,state:FSMContext):
@@ -186,6 +202,30 @@ async def MessageHistoryPages(message:types.Message):
     del messagetext,pagenumber
 
 
+@admin_router.message(F.text.lower()=="ответы пользователей")
+async def Messagehistory(message: types.Message, state:FSMContext):
+    await state.set_state(answerliststate.startanswerlist)
+    await message.answer("Список ответов",reply_markup=await answerkeyboard())
+    await message.answer("Выберите страницу из списка ниже")
+
+@admin_router.message(answerliststate.startanswerlist,F.text!="Выход из просмотра")
+async def MessageHistoryPages(message:types.Message):
+    await message.answer("Страница: "+message.text,reply_markup=await answerkeyboard())
+    pagenumber = int(message.text)
+    messagetext = list(useranswersdb.find({},{"_id":0}).skip(5*(pagenumber-1)).limit(5))
+    if len(messagetext)<5:
+        rang=len(messagetext)
+    else: 
+        rang=5
+    for i in range(0,rang):
+        myresults = [messagetext[i]["userid"],messagetext[i]["username"],messagetext[i]["challengenumber"],messagetext[i]["answer"],messagetext[i]["moderchecked"],messagetext[i]["answertime"]]
+        await message.answer("UserID пользователя: "+str(myresults[0])+"\nНик пользователя: @"+myresults[1]+"\nНомер задания: "+myresults[2]+"\nОтвет пользователя: "+str(myresults[3])+"\nРезультат проверки: "+str(myresults[4])+"\nВремя ответа: "+myresults[5])
+        del myresults
+    del messagetext,pagenumber
+
+
+
+
 @admin_router.message(F.text=="Подвести итоги")
 async def StopQuest(message:types.Message,state:FSMContext):
     await message.answer("Вы выбрали кнопку подвести итоги, после выбора Да, квест будет остановлен и это действие отменить невозможно.\nВы точно уверены в этом действии?",reply_markup=await YesNoKeyboard())
@@ -251,6 +291,7 @@ async def sendmessagetoall(message: types.Message,state:FSMContext):
 @admin_router.message(endqueststate.startendquest,F.text=="Нет")
 @admin_router.message(messagetoall.startmessage,F.text=="/cancel" or F.text=="Отменить")
 @admin_router.message(userliststate.startuserlist,F.text==("Выход из просмотра"))
+@admin_router.message(answerliststate.startanswerlist,F.text==("Выход из просмотра"))
 async def PhotoCancel(message: types.Message, state:FSMContext):
     await message.answer("Действие отменено, начните сначала",reply_markup=types.ReplyKeyboardRemove())
     await message.answer(text="Выберите действие",reply_markup=await KeyboardMain())
